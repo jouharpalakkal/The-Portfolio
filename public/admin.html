@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Portfolio</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Admin specific styles */
+        body { background-color: #f0f2f5; }
+        .admin-container { max-width: 900px; margin: 2rem auto; padding: 1rem; }
+
+        .login-form {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .login-form h2 { text-align: center; margin-bottom: 20px; }
+        .login-form input { width: 100%; padding: 12px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+        .login-form button { width: 100%; padding: 12px; background: #2c3e50; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .login-form button:hover { background: #34495e; }
+
+        .admin-section {
+            border: 1px solid #e1e4e8;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .section-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; margin-bottom: 15px; }
+        .section-title { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
+
+        .admin-subsection {
+            border: 1px solid #eee;
+            padding: 1rem;
+            margin: 1rem 0;
+            background: #f9f9f9;
+            border-radius: 6px;
+            margin-left: 20px;
+        }
+
+        .subsection-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .subsection-title { font-size: 1.2rem; font-weight: 500; color: #34495e; }
+
+        .admin-item {
+            border: 1px solid #eee;
+            padding: 10px;
+            margin: 10px 0;
+            background: #fff;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-info { display: flex; align-items: center; gap: 10px; }
+        .item-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; background: #eee; }
+
+        .btn-group { display: flex; gap: 5px; }
+        .btn-sm { padding: 4px 8px; font-size: 0.8rem; cursor: pointer; border-radius: 4px; border: none; }
+        .btn-add { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        .btn-add:hover { background: #219150; }
+
+        .btn-edit { background: #f39c12; color: white; }
+        .btn-edit:hover { background: #e67e22; }
+
+        .btn-delete { background: #c0392b; color: white; }
+        .btn-delete:hover { background: #e74c3c; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { background: white; width: 500px; max-width: 90%; margin: 50px auto; padding: 25px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-cancel { background: #95a5a6; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+
+        .helper-text { font-size: 0.8rem; color: #7f8c8d; margin-top: 2px; }
+    </style>
+</head>
+<body>
+    <div id="login-view" class="login-form" style="display: none;">
+        <h2>Admin Login</h2>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p id="login-error" style="color: #e74c3c; display: none; text-align: center; margin-top: 10px;"></p>
+    </div>
+
+    <div id="dashboard-view" class="admin-container" style="display: none;">
+        <header style="background: none; border: none; padding: 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1 style="color: #2c3e50;">Dashboard</h1>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="/" target="_blank" class="btn-sm btn-edit" style="text-decoration: none; padding: 8px 15px; display: inline-block;">View Site</a>
+                <button id="logoutBtn" class="btn-delete" style="padding: 8px 15px;">Logout</button>
+            </div>
+        </header>
+
+        <div style="margin-bottom: 20px;">
+            <button onclick="openModal('section', 'create')" class="btn-add">+ Add New Section</button>
+        </div>
+
+        <div id="admin-content">
+            <!-- Dynamic Content Tree -->
+        </div>
+    </div>
+
+    <!-- Generic Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Edit</h2>
+            <form id="modal-form">
+                <input type="hidden" id="edit-id">
+                <input type="hidden" id="edit-type"> <!-- section, subsection, item -->
+                <input type="hidden" id="edit-mode"> <!-- create, update -->
+                <input type="hidden" id="parent-id"> <!-- for creating new -->
+
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="edit-title" required>
+                </div>
+
+                <div class="form-group" id="group-description" style="display:none;">
+                    <label>Description</label>
+                    <textarea id="edit-description" rows="4"></textarea>
+                </div>
+
+                <div class="form-group" id="group-image" style="display:none;">
+                    <label>Image URL</label>
+                    <input type="text" id="edit-image" placeholder="https://...">
+                    <p class="helper-text">Supports direct links and Google Drive share links.</p>
+                </div>
+
+                <div class="form-group" id="group-link" style="display:none;">
+                    <label>Link URL</label>
+                    <input type="text" id="edit-link" placeholder="https://...">
+                </div>
+
+                <div class="form-group">
+                    <label>Display Order (0, 1, 2...)</label>
+                    <input type="number" id="edit-order" value="0">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()" class="btn-cancel">Cancel</button>
+                    <button type="submit" class="btn-add">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>
